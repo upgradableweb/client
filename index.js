@@ -4,7 +4,7 @@
 
 /**
  * @param {string} url - The URL to send the request to.
- * @param {object} body - The body to send the request to.
+ * @param {object | string} body - The body to send the request to.
  * @param {{ query?: object, authorization?: string }} options - Other options for the request.
  * @returns {Promise} - A promise that resolves with the response data.
  */
@@ -17,7 +17,7 @@ export async function POST(url, body, options) {
 
 /**
  * @param {string} url - The URL to send the request to.
- * @param {object} body - The body to send the request to.
+ * @param {object | string} body - The body to send the request to.
  * @param {{ query?: object, authorization?: string }} options - Other options for the request.
  * @returns {Promise} - A promise that resolves with the response data.
  */
@@ -30,7 +30,7 @@ export async function PUT(url, body, options) {
 
 /**
  * @param {string} url - The URL to send the request to.
- * @param {object} body - The body to send the request to.
+ * @param {object | string} body - The body to send the request to.
  * @param {{ query?: object, authorization?: string }} options - Other options for the request.
  * @returns {Promise} - A promise that resolves with the response data.
  */
@@ -43,7 +43,7 @@ export async function DELETE(url, body, options) {
 
 /**
  * @param {string} url - The URL to send the request to.
- * @param {object} body - The body to send the request to.
+ * @param {object | string} body - The body to send the request to.
  * @param {{ query?: object, authorization?: string }} options - Other options for the request.
  * @returns {Promise} - A promise that resolves with the response data.
  */
@@ -56,7 +56,7 @@ export async function PATCH(url, body, options) {
 
 /**
  * @param {string} url - The URL to send the request to.
- * @param {object} body - The body to send the request to.
+ * @param {object | string} body - The body to send the request to.
  * @param {{ query?: object, authorization?: string }} options - Other options for the request.
  * @returns {Promise} - A promise that resolves with the response data.
  */
@@ -71,8 +71,6 @@ export async function GET(url, body, options = { query, authorization }) {
 /**
  * Configuration object for the fetch operation.
  * @property {Object} fetchConfig - default configs for fetch.
- * @property {string} cache - Should be one of "default", "force-cache", or "no-cache".
- * @property {Object} next - { revalidate: number, tags: [] } Additional properties for the next.
  */
 export const fetchConfig = { baseUrl: '', headers: { authorization: '' } }
 
@@ -86,29 +84,16 @@ async function FETCH(url, body, { method, query, authorization }) {
         url += '?' + Params(query)
     }
 
-    let hs = { 'Content-Type': 'application/json', ...fetchConfig.headers, }
+    if (typeof body == 'object' && Object.keys(body).length) {
+        body = JSON.stringify(body)
+        hs['Content-Type'] = 'application/json'
+    }
 
     if (authorization) {
         hs.authorization = authorization
     }
 
-    if (typeof body == 'object') {
-        body = JSON.stringify(body)
-    } else if (body) {
-        body = body
-    }
-
-    let options = {}
-
-    if (fetchConfig.cache) {
-        options.cache = fetchConfig.cache
-    }
-
-    if (fetchConfig.next) {
-        options.next = fetchConfig.next
-    }
-
-    let res = await fetch(url, { body, method, headers: hs, ...options, })
+    let res = await fetch(url, { body, method, headers: hs })
     let data = await res.json()
     data.responseStatus = res.status
     data.responseText = res.statusText
