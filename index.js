@@ -83,7 +83,7 @@ async function FETCH(url, body, { method, query, authorization }) {
     if (typeof query == 'object') {
         url += '?' + Params(query)
     }
-
+    let hs = {}
     if (typeof body == 'object' && Object.keys(body).length) {
         body = JSON.stringify(body)
         hs['Content-Type'] = 'application/json'
