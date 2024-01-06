@@ -10,12 +10,32 @@
   
   <h3>POST</h3>
   
-    const { data } = await POST(/api/login, { body: data })
+    const data = await POST(/api/login, body)
 
-   
+ <p>Or</p>
+
+    POST(/api/login, body)
+    .then(res=>{
+      console.log(res);
+    })
+    .catch(err=>{
+      console.log(err);
+    })
+
+  <p>Or</p>
+        const onError = (err) =>{
+          alert(err.message)
+        }
+      function onResonse(res){
+        //your setData with formate response
+        setData(res)
+      }
+
+       POST(/api/login, body,{ onResonse, onError })
+
 <h3>GET</h3>
   
-    const { data } = await GET(/api/login)
+    const data = await GET(/api/login)
 
  <h2>Use same method FOR All http methods</h2>
 
@@ -33,9 +53,7 @@
   Using npm
   
     $ npm install @upgradableweb/client
-  Using yarn
-    
-     $ yarn add @upgradableweb/client
+  
 <h3>Other passing options</h3>
 <code>fetchConfig.cache | one of "default", "force-cache", "no-cache", etc
   fetchConfig.next | for nextjs { revalidate: number, tags: [] }</code>
