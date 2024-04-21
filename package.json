@@ -1,6 +1,6 @@
 {
   "name": "@upgradableweb/client",
-  "version": "1.0.4",
+  "version": "1.0.14",
   "description": "conpact fetch functionalities for react or next with base url and custom header fuctinalty",
   "main": "index.js",
   "type": "module",
@@ -29,5 +29,9 @@
   "bugs": {
     "url": "https://github.com/upgradableweb/client/issues"
   },
-  "homepage": "https://github.com/upgradableweb/client#readme"
+  "homepage": "https://github.com/upgradableweb/client#readme",
+  "dependencies": {
+    "@upgradableweb/client": "^1.0.6",
+    "typescript": "^5.3.3"
+  }
 }

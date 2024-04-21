@@ -18,10 +18,8 @@
  * @returns {Promise} - A promise that resolves with the response data.
  */
 
-export async function POST(url, body, options) {
-    let ops = options || {}
-    ops.method = 'POST'
-    return await FETCH(url, body, ops)
+export async function POST(url, body, options = {}) {
+    return await FETCH(url, body, { method: 'POST', ...options })
 }
 
 /**
@@ -31,10 +29,8 @@ export async function POST(url, body, options) {
  * @returns {Promise} - A promise that resolves with the response data.
  */
 
-export async function PUT(url, body, options) {
-    let ops = options || {}
-    ops.method = 'PUT'
-    return await FETCH(url, body, ops)
+export async function PUT(url, body, options = {}) {
+    return await FETCH(url, body, { method: 'PUT', ...options })
 }
 
 /**
@@ -44,10 +40,8 @@ export async function PUT(url, body, options) {
  * @returns {Promise} - A promise that resolves with the response data.
  */
 
-export async function DELETE(url, body, options) {
-    let ops = options || {}
-    ops.method = 'DELETE'
-    return await FETCH(url, body, ops)
+export async function DELETE(url, body, options = {}) {
+    return await FETCH(url, body, { ...options, method: 'DELETE' })
 }
 
 /**
@@ -57,10 +51,8 @@ export async function DELETE(url, body, options) {
  * @returns {Promise} - A promise that resolves with the response data.
  */
 
-export async function PATCH(url, body, options) {
-    let ops = options || {}
-    ops.method = 'PATCH'
-    return await FETCH(url, body, ops)
+export async function PATCH(url, body, options = {}) {
+    return await FETCH(url, body, { ...options, method: 'PATCH' })
 }
 
 /**
@@ -70,74 +62,70 @@ export async function PATCH(url, body, options) {
  * @returns {Promise} - A promise that resolves with the response data.
  */
 
-export async function GET(url, body, options) {
-    let ops = options || {}
-    ops.method = 'GET'
-    return await FETCH(url, body, ops)
+export async function GET(url, body, options = {}) {
+    return await FETCH(url, body, { ...options, method: 'GET' })
 }
 
+export const client = { baseUrl: '', authorization: '', fetcher: fetch }
 
-/**
- * Configuration object for the fetch operation.
- * @property {Object} fetchConfig - default configs for fetch.
- */
-export const fetchConfig = { baseUrl: '', headers: { authorization: '' } }
+const { baseUrl, authorization: auth, fetcher, ...others } = client
 
-async function FETCH(url, body, { method, query, authorization, setLoading, onResponse, onError }) {
+async function FETCH(url, body,
+    {
+        method,
+        query,
+        authorization = client.authorization,
+        setLoading,
+        onResponse,
+        onError,
+        ...inits
+    }) {
 
-    if (fetchConfig.baseUrl && !url.startsWith('http')) {
-        url = fetchConfig.baseUrl + url
+    if (baseUrl && !url.startsWith('http')) {
+        url = baseUrl + url
     }
 
     if (typeof query == 'object') {
         url += '?' + Params(query)
     }
-    let hs = {}
-    if (typeof body == 'object' && Object.keys(body).length) {
-        body = JSON.stringify(body)
-        hs['Content-Type'] = 'application/json'
+    let init = { ...others, headers: {}, method, body, ...inits }
+
+    if (!(body instanceof FormData)) {
+        init.body = JSON.stringify(body)
+        init.headers['Content-Type'] = 'application/json'
     }
 
     if (authorization) {
-        hs.authorization = authorization
+        init.headers.authorization = authorization
     }
-    try {
-        setLoading && setLoading(true)
-        let res = await fetch(url, { body, method, headers: hs })
-        let data = await res.json()
-        data.responseStatus = res.status
-        data.responseText = res.statusText
-        if (!res.ok) {
-            if (!data.message) {
-                data.message = res.statusText
-            }
+
+    setLoading && setLoading(true)
+    let res = await fetcher(url, init),
+        data = await res.json()
+    data.responseStatus = res.status
+    data.responseText = res.statusText
+
+    setLoading && setLoading(false)
+
+    if (!res.ok) {
+        if (onError) {
+            onError(data)
+            return
+        } else if (!onResponse) {
             throw data
         }
+    }
 
-        if (onResponse) {
-            onResponse(data)
-        } else {
-            return data
-        }
-
-    } catch (error) {
-        onError && onError(error)
-        if (!onResponse) {
-            throw error
-        }
-    } finally {
-        setLoading && setLoading(false)
+    if (onResponse) {
+        onResponse(data)
+    } else {
+        return data
     }
 }
 
-export function Params(params = {}) {
-    let url = ''
-    for (const dat of Object.keys(params)) {
-        if (params[dat]) {
-            url += "&" + dat + "=" + params[dat]
-        }
-    }
-    return url.slice(1)
+export function Params(query = {}) {
+    const q = Object.entries(query)
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&');
+    return q
 }
-
-
