@@ -9,6 +9,7 @@
  * @property {() => void} [setLoading] - Function to set loading state.
  * @property {() => void} [onResponse] - Function to handle successful response.
  * @property {() => void} [onError] - Function to handle errors.
+ * @property {() => void} [setError] - Function to handle errors.
  */
 
 /**
@@ -76,6 +77,7 @@ async function FETCH(url, body,
         query,
         authorization = client.authorization,
         setLoading,
+        setError,
         onResponse,
         onError,
         ...inits
@@ -110,6 +112,9 @@ async function FETCH(url, body,
     if (!res.ok) {
         if (onError) {
             onError(data)
+            return
+        } else if (setError) {
+            setError(data.message)
             return
         } else if (!onResponse) {
             throw data
