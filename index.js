@@ -100,10 +100,14 @@ async function FETCH(url, body,
     if (authorization) {
         init.headers.authorization = authorization
     }
-
     setLoading && setLoading(true)
-    let res = await fetcher(url, init),
+    let res = await fetcher(url, init), data
+    try {
         data = await res.json()
+    } catch (error) {
+        data = error
+    }
+
     data.responseStatus = res.status
     data.responseText = res.statusText
 
