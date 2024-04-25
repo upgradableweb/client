@@ -101,19 +101,19 @@ async function FETCH(url, body,
         init.headers.authorization = authorization
     }
     setLoading && setLoading(true)
-    let data, error, res
+    let data, res
     try {
         res = await fetcher(url, init)
         data = await res.json()
         data.responseStatus = res.status
         data.responseText = res.statusText
-    } catch (err) {
-        error = err
+    } catch (error) {
+        data = error
     }
 
     setLoading && setLoading(false)
 
-    if (!res.ok || error) {
+    if (!res || !res.ok) {
         if (onError) {
             onError(data)
             return
@@ -121,7 +121,7 @@ async function FETCH(url, body,
             setError(data.message)
             return
         } else if (!onResponse) {
-            throw error
+            throw data
         }
     }
 
